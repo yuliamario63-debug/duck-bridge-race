@@ -1,0 +1,288 @@
+/* =====================================================================
+   Duck Rush: Water Slide Race — стили
+   Дизайн-токены:
+   --water-deep #0891B2 / --water-mid #22D3EE / --water-light #A5F3FC
+   --sun #FFD93D / --coral #FF6B5B / --foam #FFFFFF / --ink #073B4C
+   Display: 'Baloo 2' (округлый, "прыгучий") · Body: 'Nunito'
+   ===================================================================== */
+
+:root {
+  --water-deep: #0891B2;
+  --water-mid: #22D3EE;
+  --water-light: #A5F3FC;
+  --sun: #FFD93D;
+  --coral: #FF6B5B;
+  --foam: #FFFFFF;
+  --ink: #073B4C;
+  --shadow-soft: 0 8px 24px rgba(7, 59, 76, 0.18);
+  font-family: 'Nunito', ui-rounded, system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: linear-gradient(180deg, #EAF9FC 0%, #DFF6FA 100%);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+h1, .display {
+  font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif;
+}
+
+/* ---------------------------------------------------------------------
+   Демо-страница чекаута (контекст интеграции)
+   --------------------------------------------------------------------- */
+.checkout-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 28px;
+  background: var(--foam);
+  box-shadow: var(--shadow-soft);
+}
+.checkout-header .logo { font-family: 'Baloo 2'; font-weight: 800; font-size: 1.25rem; color: var(--water-deep); }
+.checkout-header .steps { font-size: 0.85rem; color: #5B7C87; }
+
+.checkout-main { display: flex; justify-content: center; padding: 40px 20px; }
+.checkout-card {
+  background: var(--foam);
+  border-radius: 24px;
+  padding: 32px;
+  width: 100%; max-width: 460px;
+  box-shadow: var(--shadow-soft);
+}
+.checkout-card h1 { font-size: 1.6rem; margin: 0 0 4px; color: var(--ink); }
+.muted { color: #6E8A93; margin: 0 0 20px; font-size: 0.95rem; }
+
+.order-row {
+  display: flex; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px dashed #DCEEF2;
+  font-size: 0.95rem;
+}
+.order-row.total { font-weight: 800; font-size: 1.15rem; border-bottom: none; padding-top: 14px; color: var(--water-deep); }
+
+.btn-primary {
+  width: 100%; margin-top: 22px; padding: 15px;
+  background: var(--water-deep); color: white; border: none; border-radius: 14px;
+  font-family: 'Baloo 2'; font-weight: 700; font-size: 1.05rem;
+  cursor: pointer; transition: transform 0.15s ease, background 0.15s ease;
+}
+.btn-primary:hover { background: #076B84; transform: translateY(-1px); }
+
+.game-teaser {
+  margin-top: 18px; padding: 16px;
+  background: linear-gradient(135deg, var(--water-light), #D8F5FA);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap;
+}
+.teaser-text { display: flex; flex-direction: column; font-size: 0.88rem; }
+.teaser-text strong { color: var(--ink); }
+.teaser-text span { color: #3E7482; }
+
+.btn-secondary {
+  padding: 11px 18px; border: none; border-radius: 12px;
+  background: var(--sun); color: #6B4E00; font-family: 'Baloo 2'; font-weight: 700;
+  cursor: pointer; box-shadow: 0 4px 0 #E0B400; transition: transform 0.1s ease, box-shadow 0.1s ease;
+  white-space: nowrap;
+}
+.btn-secondary:hover { transform: translateY(2px); box-shadow: 0 2px 0 #E0B400; }
+.btn-secondary:active { transform: translateY(4px); box-shadow: none; }
+
+/* ---------------------------------------------------------------------
+   Игровой оверлей
+   --------------------------------------------------------------------- */
+.hidden { display: none !important; }
+
+.duck-rush-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(3, 30, 39, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  animation: dr-fade-in 0.25s ease;
+}
+@keyframes dr-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.duck-rush-root {
+  position: relative;
+  width: min(480px, 100vw);
+  height: min(860px, 100vh);
+  background: linear-gradient(180deg, var(--water-light) 0%, var(--water-mid) 60%, var(--water-deep) 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  touch-action: none;
+  user-select: none;
+}
+@media (max-width: 520px) {
+  .duck-rush-root { width: 100vw; height: 100vh; border-radius: 0; }
+}
+
+.dr-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.dr-close-btn {
+  position: absolute; top: 12px; right: 12px; z-index: 20;
+  width: 36px; height: 36px; border-radius: 50%; border: none;
+  background: rgba(7,59,76,0.35); color: white; font-size: 1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+/* ---- HUD ------------------------------------------------------------ */
+.dr-hud {
+  position: absolute; top: 14px; left: 14px; right: 14px; z-index: 15;
+  display: flex; align-items: center; gap: 10px;
+  pointer-events: none; /* HUD не должен мешать drag-управлению уткой */
+}
+.dr-hud-pill {
+  background: rgba(255,255,255,0.9);
+  color: var(--ink);
+  font-family: 'Baloo 2'; font-weight: 700;
+  padding: 7px 12px; border-radius: 999px; font-size: 0.9rem;
+  box-shadow: var(--shadow-soft);
+  white-space: nowrap;
+}
+.dr-position #drPosition { color: var(--coral); font-size: 1.05rem; }
+.dr-hud-sub { color: #8FA9B0; margin-left: 2px; }
+
+.dr-progress-wrap { flex: 1; }
+.dr-progress-track {
+  position: relative;
+  height: 14px; border-radius: 999px;
+  background: rgba(255,255,255,0.55);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+  overflow: visible;
+}
+.dr-progress-fill {
+  position: absolute; top: 0; left: 0; bottom: 0; width: 0%;
+  background: linear-gradient(90deg, var(--sun), var(--coral));
+  border-radius: 999px;
+  transition: width 0.12s linear;
+}
+.dr-progress-duck {
+  position: absolute; top: 50%; left: 0%;
+  transform: translate(-50%, -50%);
+  font-size: 1.1rem;
+  transition: left 0.12s linear;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.25));
+}
+.dr-progress-flag { position: absolute; right: -4px; top: 50%; transform: translateY(-50%); font-size: 1rem; }
+
+.dr-boost-banner {
+  position: absolute; top: 62px; left: 50%; transform: translateX(-50%) scale(0.8);
+  z-index: 15; opacity: 0; pointer-events: none;
+  font-family: 'Baloo 2'; font-weight: 800; font-size: 1.1rem;
+  color: white; text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.dr-boost-banner.show { opacity: 1; transform: translateX(-50%) scale(1); animation: dr-pop 0.35s ease; }
+@keyframes dr-pop { 0% { transform: translateX(-50%) scale(0.6); } 60% { transform: translateX(-50%) scale(1.15); } 100% { transform: translateX(-50%) scale(1); } }
+
+/* ---- Countdown -------------------------------------------------------- */
+.dr-countdown {
+  position: absolute; inset: 0; z-index: 18;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Baloo 2'; font-weight: 800; font-size: 6rem; color: white;
+  text-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  background: rgba(3,30,39,0.15);
+}
+.dr-countdown.pulse { animation: dr-count-pulse 0.55s ease; }
+@keyframes dr-count-pulse { 0% { transform: scale(0.4); opacity: 0; } 40% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+
+/* ---- Индикатор ускорения (десктоп, ↑/W) -------------------------------- */
+.dr-accel-indicator {
+  position: absolute; bottom: 86px; left: 50%; transform: translateX(-50%) scale(0.85);
+  z-index: 15; opacity: 0; pointer-events: none;
+  font-family: 'Baloo 2'; font-weight: 800; font-size: 0.95rem; letter-spacing: 1px;
+  color: var(--ink); background: rgba(255,217,61,0.92);
+  padding: 6px 14px; border-radius: 999px;
+  box-shadow: var(--shadow-soft);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.dr-accel-indicator.show { opacity: 1; transform: translateX(-50%) scale(1); }
+
+/* ---- Controls ----------------------------------------------------------
+   Джойстика больше нет: рулевое управление — это либо стрелки/A-D + ↑
+   на клавиатуре (десктоп), либо прямой drag пальцем по всему игровому
+   полю (мобильные), см. scripts/input.js. Единственный физический элемент
+   управления в UI — кнопка звука. */
+.dr-controls {
+  position: absolute; bottom: 20px; right: 16px; z-index: 15;
+}
+.dr-mute-btn {
+  width: 48px; height: 48px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,0.85); font-size: 1.3rem; cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
+
+.dr-hint {
+  position: absolute; bottom: 34px; left: 0; right: 0; z-index: 14;
+  text-align: center; color: rgba(255,255,255,0.9);
+  font-size: 0.8rem; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+/* ---- Results screen ---------------------------------------------------- */
+.dr-results {
+  position: absolute; inset: 0; z-index: 30;
+  background: rgba(3,30,39,0.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.dr-results-card {
+  background: var(--foam);
+  border-radius: 24px;
+  padding: 30px 26px;
+  width: 100%; max-width: 360px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  animation: dr-card-in 0.4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes dr-card-in { from { transform: scale(0.7) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+
+.dr-results-card .emoji { font-size: 3.2rem; animation: dr-bounce 1.1s ease infinite; }
+@keyframes dr-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+.dr-results-card h2 { font-family: 'Baloo 2'; font-size: 1.5rem; margin: 10px 0 4px; color: var(--ink); }
+.dr-results-card p { color: #5B7C87; margin: 0 0 18px; font-size: 0.95rem; line-height: 1.4; }
+
+.dr-promo-box {
+  background: linear-gradient(135deg, #FFF6D9, #FFE9B8);
+  border: 2px dashed var(--sun);
+  border-radius: 14px; padding: 12px; margin: 0 0 18px;
+  font-family: 'Baloo 2'; font-weight: 800; font-size: 1.3rem; letter-spacing: 2px;
+  color: #7A5900;
+}
+.dr-promo-box small { display: block; font-family: 'Nunito'; font-weight: 700; font-size: 0.75rem; letter-spacing: 0; color: #A47B00; margin-bottom: 4px; }
+
+.dr-results-actions { display: flex; flex-direction: column; gap: 10px; }
+.dr-btn-cta {
+  padding: 14px; border: none; border-radius: 14px;
+  background: linear-gradient(135deg, var(--coral), #FF8A6E);
+  color: white; font-family: 'Baloo 2'; font-weight: 800; font-size: 1.05rem;
+  cursor: pointer; box-shadow: 0 5px 0 #D8503F;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.dr-btn-cta:hover { transform: translateY(2px); box-shadow: 0 3px 0 #D8503F; }
+.dr-btn-cta:active { transform: translateY(5px); box-shadow: none; }
+
+.dr-btn-ghost {
+  padding: 12px; border: 2px solid var(--water-light); border-radius: 14px;
+  background: white; color: var(--water-deep); font-family: 'Baloo 2'; font-weight: 700; font-size: 0.95rem;
+  cursor: pointer; transition: background 0.15s ease;
+}
+.dr-btn-ghost:hover { background: var(--water-light); }
+
+/* Confetti burst container for win screen */
+.dr-confetti-piece {
+  position: absolute; top: -10px; width: 8px; height: 14px; border-radius: 2px;
+  animation: dr-confetti-fall linear forwards;
+}
+@keyframes dr-confetti-fall {
+  to { transform: translateY(720px) rotate(540deg); opacity: 0.2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dr-results-card .emoji { animation: none; }
+  .dr-confetti-piece { animation: none; display: none; }
+}

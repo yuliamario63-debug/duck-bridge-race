@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Duck Rush: Water Slide Race — демо интеграции</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/style.css" />
+</head>
+<body>
+
+  <!-- ============================================================ -->
+  <!-- ДЕМО-СТРАНИЦА ТРЕВЕЛ-ЧЕКАУТА (просто для контекста интеграции) -->
+  <!-- ============================================================ -->
+  <div class="checkout-page">
+    <header class="checkout-header">
+      <div class="logo">🧳 TripNest</div>
+      <div class="steps">Поиск → Отель → <b>Оплата</b> → Готово</div>
+    </header>
+
+    <main class="checkout-main">
+      <section class="checkout-card">
+        <h1>Оформление заказа</h1>
+        <p class="muted">Хельсинки → Санторини · 7 ночей · 2 гостя</p>
+
+        <div class="order-row"><span>Отель Aegean Breeze Resort</span><span>€612</span></div>
+        <div class="order-row"><span>Перелёт туда-обратно</span><span>€284</span></div>
+        <div class="order-row"><span>Страховка</span><span>€19</span></div>
+        <div class="order-row total"><span>Итого</span><span id="orderTotal">€915</span></div>
+
+        <button class="btn-primary" id="payBtn">Оплатить €915</button>
+
+        <div class="game-teaser" id="gameTeaser">
+          <div class="teaser-text">
+            <strong>Пока платёж обрабатывается —</strong>
+            <span>прокатитесь на утке и получите шанс на скидку 🦆</span>
+          </div>
+          <button class="btn-secondary" id="openGameBtn">Играть в Duck Rush</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- КОНТЕЙНЕР ИГРЫ — можно вставить в любое место страницы -->
+  <!-- API: DuckRushGame.startGame() / pauseGame() / resumeGame() / destroyGame() -->
+  <!-- ============================================================ -->
+  <div id="duckRushOverlay" class="duck-rush-overlay hidden">
+    <div id="duckRushRoot" class="duck-rush-root">
+
+      <button id="drCloseBtn" class="dr-close-btn" aria-label="Закрыть игру">✕</button>
+
+      <canvas id="drCanvas" class="dr-canvas"></canvas>
+
+      <!-- HUD -->
+      <div class="dr-hud">
+        <div class="dr-hud-pill dr-position">
+          <span id="drPosition">1</span><span class="dr-hud-sub">/ 9</span>
+        </div>
+        <div class="dr-progress-wrap">
+          <div class="dr-progress-track">
+            <div class="dr-progress-fill" id="drProgressFill"></div>
+            <div class="dr-progress-duck" id="drProgressDuck">🦆</div>
+            <div class="dr-progress-flag">🏁</div>
+          </div>
+        </div>
+        <div class="dr-hud-pill dr-timer">⏱ <span id="drTimer">0.0</span>s</div>
+      </div>
+
+      <div class="dr-boost-banner" id="drBoostBanner"></div>
+
+      <!-- Countdown -->
+      <div class="dr-countdown hidden" id="drCountdown">3</div>
+
+      <!-- Индикатор ускорения (десктоп, ↑) -->
+      <div class="dr-accel-indicator" id="drAccelIndicator">⚡ УСКОРЕНИЕ</div>
+
+      <!-- Controls: звук — единственный физический элемент управления в UI.
+           Само рулевое управление — это либо стрелки/A-D на клавиатуре
+           (десктоп), либо прямой drag пальцем по всему экрану (мобильные) —
+           см. scripts/input.js -->
+      <div class="dr-controls">
+        <button class="dr-mute-btn" id="drMuteBtn" aria-label="Выключить звук">🔊</button>
+      </div>
+
+      <div class="dr-hint" id="drHint">Двигайте уточку пальцем влево/вправо</div>
+
+      <!-- Results screen -->
+      <div class="dr-results hidden" id="drResults">
+        <div class="dr-results-card" id="drResultsCard">
+          <!-- заполняется динамически в ui.js -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Игровые скрипты -->
+  <script src="scripts/config.js"></script>
+  <script src="scripts/audio.js"></script>
+  <script src="scripts/track.js"></script>
+  <script src="scripts/duck.js"></script>
+  <script src="scripts/ai.js"></script>
+  <script src="scripts/particles.js"></script>
+  <script src="scripts/input.js"></script>
+  <script src="scripts/ui.js"></script>
+  <script src="scripts/game.js"></script>
+
+  <!-- Пример интеграции на странице тревел-сервиса -->
+  <script>
+    // Пример: applyPromoCode вызывается кнопкой "Использовать скидку"
+    // в экране результатов победы. В реальном сервисе здесь будет
+    // запись промокода в форму оплаты / вызов вашего API скидок.
+    function applyPromoCode(code) {
+      const totalEl = document.getElementById('orderTotal');
+      const payBtn = document.getElementById('payBtn');
+      const discount = window.DUCK_RUSH_CONFIG.discountPercent;
+      const currentTotal = 915;
+      const newTotal = Math.round(currentTotal * (1 - discount / 100));
+      totalEl.textContent = `€${newTotal}`;
+      payBtn.textContent = `Оплатить €${newTotal} (промокод ${code} применён ✅)`;
+      DuckRushGame.destroyGame();
+    }
+
+    const overlay = document.getElementById('duckRushOverlay');
+    const openGameBtn = document.getElementById('openGameBtn');
+    const closeBtn = document.getElementById('drCloseBtn');
+
+    openGameBtn.addEventListener('click', () => {
+      overlay.classList.remove('hidden');
+      DuckRushGame.startGame({
+        onWin: (promoCode) => console.log('onWin →', promoCode),
+        onLose: () => console.log('onLose'),
+        onFinish: (position) => console.log('onFinish → место', position),
+      });
+    });
+
+    closeBtn.addEventListener('click', () => {
+      DuckRushGame.destroyGame();
+      overlay.classList.add('hidden');
+    });
+
+    // Пауза игры, если пользователь свернул вкладку — экономим ресурсы
+    document.addEventListener('visibilitychange', () => {
+      if (!overlay.classList.contains('hidden')) {
+        if (document.hidden) DuckRushGame.pauseGame();
+        else DuckRushGame.resumeGame();
+      }
+    });
+  </script>
+</body>
+</html>
